@@ -5,12 +5,12 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class NewListImpl<T> implements NewList<T> {
-	
 
 	/*
-	 * Statt *synchronized* als Schlüsselwort an den Methoden wird hier eine private
-	 * Instanzvariable zum Synchronisieren verwendet, damit niemand von außen an
-	 * derselben Variable einen Lock setzen kann, um Verklemmungen zu vermeiden.
+	 * Statt *synchronized* als Schlüsselwort an den Methoden wird hier eine
+	 * private Instanzvariable zum Synchronisieren verwendet, damit niemand von
+	 * außen an derselben Variable einen Lock setzen kann, um Verklemmungen zu
+	 * vermeiden.
 	 * 
 	 */
 	private final Object intrinsicLock = new Object();
@@ -22,7 +22,6 @@ public class NewListImpl<T> implements NewList<T> {
 		public ReadWriteLock lock = new ReentrantReadWriteLock();
 		public Lock rLock = lock.readLock();
 		public Lock wLock = lock.writeLock();
-		
 
 		private ListElement(final U element, final ListElement<U> prev, final ListElement<U> next) {
 			this.element = element;
