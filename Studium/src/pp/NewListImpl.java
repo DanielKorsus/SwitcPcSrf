@@ -6,9 +6,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class NewListImpl<T> implements NewList<T> {
 	
-	private ReadWriteLock lock;
-	private Lock rLock;
-	private Lock wLock; 
+
 	/*
 	 * Statt *synchronized* als Schlüsselwort an den Methoden wird hier eine private
 	 * Instanzvariable zum Synchronisieren verwendet, damit niemand von außen an
