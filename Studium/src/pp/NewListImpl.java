@@ -1,18 +1,30 @@
 package pp;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 public class NewListImpl<T> implements NewList<T> {
+	
+	private ReadWriteLock lock;
+	private Lock rLock;
+	private Lock wLock; 
 	/*
 	 * Statt *synchronized* als Schlüsselwort an den Methoden wird hier eine private
 	 * Instanzvariable zum Synchronisieren verwendet, damit niemand von außen an
 	 * derselben Variable einen Lock setzen kann, um Verklemmungen zu vermeiden.
 	 * 
 	 */
-	private final Object intrinsicLock = new Object();
+	//private final Object intrinsicLock = new Object();
 
 	private class ListElement<U> {
 		private U element;
 		private ListElement<U> prev;
 		private final ListElement<U> next;
+		public ReadWriteLock lock = new ReentrantReadWriteLock();
+		public Lock rLock = lock.readLock();
+		public Lock wLock = lock.writeLock();
+		
 
 		private ListElement(final U element, final ListElement<U> prev, final ListElement<U> next) {
 			this.element = element;
@@ -29,36 +41,100 @@ public class NewListImpl<T> implements NewList<T> {
 
 	@Override
 	public T get(final int i) {
-		synchronized (this.intrinsicLock) {
+		
 			int j = 0;
 			ListElement<T> ptr = this.first;
+			ptr.rLock.lock();
+			
+			try {
+				
 			while (j++ < i) {
-				ptr = ptr.next;
+				
+				if (ptr.next != null) {
+					ptr.next.rLock.lock();
+
+					ptr = ptr.next;
+					ptr.prev.rLock.unlock();
+				}
+
 			}
-			return inspect(ptr.element);
+			
+			
+				return inspect(ptr.element);
+			
+			}catch(Exception e) {
+				
+				throw new RuntimeException(e);
+				
+			}	finally {
+				ptr.rLock.unlock();
 		}
 	}
 
 	@Override
 	public void add(final T e) {
-		synchronized (this.intrinsicLock) {
+
+
+		
+//		if (this.first != null) {
+//			insert.wLock.lock();
+//		} else {
+//			insert.wLock.lock();
+//		}
+			
+		try {
 			final ListElement<T> insert = new ListElement<>(e, null, this.first);
+			
 			if (this.first != null) {
+				insert.wLock.lock();
 				this.first.prev = insert;
+				insert.wLock.unlock();
 			}
+			
+			insert.wLock.lock();
 			this.first = insert;
+			insert.wLock.unlock();
+			
+		} finally {
+		
+		//	insert.wLock.unlock();
+			
+//			if (this.first != null) {
+//				insert.wLock.unlock();
+//
+//			} else {
+//				insert.wLock.unlock();
+//
+//			}
 		}
+
 	}
+	
 
 	@Override
 	public void mod(final int i, final T e) {
-		synchronized (this.intrinsicLock) {
+		
+		
 			int j = 0;
 			ListElement<T> ptr = this.first;
+			ptr.rLock.lock();
+			
+			try {		
+				
 			while (j++ < i) {
-				ptr = ptr.next;
+				if (ptr.next != null) {
+					ptr.next.rLock.lock();
+					ptr = ptr.next;
+					ptr.prev.rLock.unlock();
+				}
 			}
+			
 			ptr.element = e;
+			
+		} finally {
+			ptr.rLock.unlock();
 		}
+			
 	}
+	
 }
