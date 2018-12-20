@@ -49,7 +49,6 @@ public class NewListImpl<T> implements NewList<T> {
 
 				if (ptr.next != null) {
 					ptr.next.rLock.lock();
-
 					ptr = ptr.next;
 					ptr.prev.rLock.unlock();
 				}
