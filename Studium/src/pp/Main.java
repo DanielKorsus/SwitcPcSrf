@@ -4,7 +4,7 @@ public class Main {
 
     public static void main(final String[] args) throws InterruptedException  {
         final NewList<Integer> list = new NewListImpl<>();
-        final int iterate = 10;
+        final int iterate = 5000;
         final Thread thread0 = new Thread(() -> {
         	int sum = 0;
             for (int i = 0; i < 1250; i++) {

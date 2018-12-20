@@ -15,7 +15,7 @@ public class NewListImpl<T> implements NewList<T> {
 	 * derselben Variable einen Lock setzen kann, um Verklemmungen zu vermeiden.
 	 * 
 	 */
-	//private final Object intrinsicLock = new Object();
+	private final Object intrinsicLock = new Object();
 
 	private class ListElement<U> {
 		private U element;
@@ -41,15 +41,15 @@ public class NewListImpl<T> implements NewList<T> {
 
 	@Override
 	public T get(final int i) {
-		
-			int j = 0;
-			ListElement<T> ptr = this.first;
-			ptr.rLock.lock();
-			
-			try {
-				
+
+		int j = 0;
+		ListElement<T> ptr = this.first;
+		ptr.rLock.lock();
+
+		try {
+
 			while (j++ < i) {
-				
+
 				if (ptr.next != null) {
 					ptr.next.rLock.lock();
 
@@ -58,69 +58,52 @@ public class NewListImpl<T> implements NewList<T> {
 				}
 
 			}
-			
-			
-				return inspect(ptr.element);
-			
-			}catch(Exception e) {
-				
-				throw new RuntimeException(e);
-				
-			}	finally {
-				ptr.rLock.unlock();
+
+			return inspect(ptr.element);
+
+		} catch (Exception e) {
+
+			throw new RuntimeException(e);
+
+		} finally {
+			ptr.rLock.unlock();
 		}
 	}
 
 	@Override
 	public void add(final T e) {
 
+		final ListElement<T> insert = new ListElement<>(e, null, this.first);
 
-		
-//		if (this.first != null) {
-//			insert.wLock.lock();
-//		} else {
-//			insert.wLock.lock();
-//		}
-			
+		insert.wLock.lock();
+
 		try {
-			final ListElement<T> insert = new ListElement<>(e, null, this.first);
-			
+
 			if (this.first != null) {
-				insert.wLock.lock();
+				this.first.wLock.lock();
 				this.first.prev = insert;
-				insert.wLock.unlock();
+				this.first.wLock.unlock();
 			}
-			
-			insert.wLock.lock();
+
 			this.first = insert;
-			insert.wLock.unlock();
-			
+
 		} finally {
-		
-		//	insert.wLock.unlock();
-			
-//			if (this.first != null) {
-//				insert.wLock.unlock();
-//
-//			} else {
-//				insert.wLock.unlock();
-//
-//			}
+
+			insert.wLock.unlock();
+
 		}
 
 	}
-	
 
 	@Override
 	public void mod(final int i, final T e) {
-		
-		
-			int j = 0;
-			ListElement<T> ptr = this.first;
-			ptr.rLock.lock();
-			
-			try {		
-				
+
+		int j = 0;
+		ListElement<T> ptr = this.first;
+		ptr.rLock.lock();
+
+		try {
+
 			while (j++ < i) {
 				if (ptr.next != null) {
 					ptr.next.rLock.lock();
@@ -128,13 +111,13 @@ public class NewListImpl<T> implements NewList<T> {
 					ptr.prev.rLock.unlock();
 				}
 			}
-			
+
 			ptr.element = e;
-			
+
 		} finally {
 			ptr.rLock.unlock();
 		}
-			
+
 	}
-	
+
 }
